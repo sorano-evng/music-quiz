@@ -1,1612 +1,1164 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>音楽業界クイズ - Music Industry Quiz</title>
-<style>
-:root {
-  --primary: #7c3aed;
-  --primary-dark: #5b21b6;
-  --primary-light: #a78bfa;
-  --accent: #3b82f6;
-  --accent-light: #60a5fa;
-  --bg-dark: #0f0d1a;
-  --bg-card: #1a1730;
-  --bg-card-hover: #241f3d;
-  --text: #e8e6f0;
-  --text-dim: #9b97b0;
-  --correct: #10b981;
-  --correct-bg: rgba(16, 185, 129, 0.15);
-  --incorrect: #ef4444;
-  --incorrect-bg: rgba(239, 68, 68, 0.15);
-  --border: rgba(124, 58, 237, 0.3);
-}
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-  background: var(--bg-dark);
-  color: var(--text);
-  min-height: 100vh;
-  line-height: 1.6;
-}
-
-.app-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px;
-  min-height: 100vh;
-}
-
-/* Header */
-.app-header {
-  text-align: center;
-  padding: 32px 0 24px;
-}
-
-.app-header h1 {
-  font-size: 1.8rem;
-  background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 4px;
-}
-
-.app-header .subtitle {
-  color: var(--text-dim);
-  font-size: 0.9rem;
-}
-
-/* Screen transitions */
-.screen { display: none; animation: fadeIn 0.3s ease; }
-.screen.active { display: block; }
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Category Selection */
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  margin: 20px 0;
-}
-
-.category-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-}
-
-.category-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--primary-light);
-  transform: translateY(-2px);
-}
-
-.category-card.selected {
-  border-color: var(--primary);
-  background: rgba(124, 58, 237, 0.15);
-}
-
-.category-card .cat-icon { font-size: 1.5rem; margin-bottom: 6px; }
-.category-card .cat-name { font-size: 0.95rem; font-weight: 600; }
-.category-card .cat-count { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
-
-.category-card .check-mark {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--primary);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.category-card.selected .check-mark { display: flex; }
-
-/* Stats bar on category cards */
-.cat-stats {
-  margin-top: 6px;
-  font-size: 0.75rem;
-  color: var(--accent-light);
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 28px;
-  border-radius: 10px;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #fff;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-}
-
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.btn-secondary {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover { background: var(--bg-card-hover); }
-
-.btn-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
-
-/* Question count selector */
-.count-selector {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 20px 0;
-}
-
-.count-btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text);
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.2s;
-}
-
-.count-btn:hover { border-color: var(--primary-light); }
-.count-btn.selected { background: var(--primary); border-color: var(--primary); }
-
-/* Progress bar */
-.progress-container {
-  margin: 16px 0;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  margin-bottom: 6px;
-}
-
-.progress-bar {
-  height: 6px;
-  background: rgba(124, 58, 237, 0.2);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  border-radius: 3px;
-  transition: width 0.4s ease;
-}
-
-/* Question card */
-.question-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  margin: 16px 0;
-}
-
-.question-meta {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.badge-category { background: rgba(124, 58, 237, 0.2); color: var(--primary-light); }
-.badge-type { background: rgba(59, 130, 246, 0.2); color: var(--accent-light); }
-
-.question-text {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-bottom: 24px;
-  line-height: 1.7;
-}
-
-/* Answer options */
-.options-list { display: flex; flex-direction: column; gap: 10px; }
-
-.option-btn {
-  width: 100%;
-  text-align: left;
-  padding: 14px 18px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-dark);
-  color: var(--text);
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  line-height: 1.5;
-}
-
-.option-btn:hover:not(:disabled) {
-  border-color: var(--primary-light);
-  background: var(--bg-card-hover);
-}
-
-.option-btn:disabled { cursor: default; }
-
-.option-btn.correct {
-  border-color: var(--correct);
-  background: var(--correct-bg);
-  animation: pulse-correct 0.5s ease;
-}
-
-.option-btn.incorrect {
-  border-color: var(--incorrect);
-  background: var(--incorrect-bg);
-  animation: shake 0.4s ease;
-}
-
-@keyframes pulse-correct {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-/* Matching question */
-.matching-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.matching-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.matching-term {
-  flex: 1;
-  min-width: 120px;
-  padding: 10px 14px;
-  background: rgba(124, 58, 237, 0.1);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.matching-select {
-  flex: 1.5;
-  min-width: 160px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-dark);
-  color: var(--text);
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-
-.matching-select:disabled { opacity: 0.7; }
-
-.matching-submit-btn {
-  margin-top: 8px;
-  align-self: flex-end;
-}
-
-/* Explanation */
-.explanation {
-  margin-top: 20px;
-  padding: 16px;
-  border-radius: 10px;
-  background: rgba(59, 130, 246, 0.1);
-  border-left: 3px solid var(--accent);
-  font-size: 0.9rem;
-  line-height: 1.7;
-  animation: fadeIn 0.3s ease;
-}
-
-.explanation-label {
-  font-weight: 700;
-  color: var(--accent-light);
-  margin-bottom: 4px;
-}
-
-/* Result screen */
-.result-card {
-  text-align: center;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 28px;
-  margin: 20px 0;
-}
-
-.score-circle {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: 800;
-  position: relative;
-}
-
-.score-circle::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  padding: 4px;
-  background: linear-gradient(135deg, var(--primary), var(--accent));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-
-.score-label { font-size: 0.8rem; color: var(--text-dim); font-weight: 400; }
-
-.result-message { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
-.result-sub { color: var(--text-dim); font-size: 0.9rem; }
-
-/* Category stats */
-.cat-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.cat-stat-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-}
-
-.cat-stat-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
-
-.cat-stat-bar {
-  height: 4px;
-  background: rgba(124, 58, 237, 0.2);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-
-.cat-stat-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  border-radius: 2px;
-  transition: width 0.6s ease;
-}
-
-.cat-stat-text { font-size: 0.75rem; color: var(--text-dim); }
-
-/* Review section */
-.review-section { margin: 24px 0; }
-.review-section h3 { font-size: 1.1rem; margin-bottom: 16px; }
-
-.review-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 12px;
-}
-
-.review-item .q-label { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; }
-.review-item .q-text { font-weight: 600; margin-bottom: 10px; }
-.review-item .your-answer { color: var(--incorrect); font-size: 0.9rem; }
-.review-item .correct-answer { color: var(--correct); font-size: 0.9rem; margin-bottom: 8px; }
-
-.review-explanation {
-  font-size: 0.85rem;
-  color: var(--text-dim);
-  padding: 10px;
-  background: rgba(59, 130, 246, 0.08);
-  border-radius: 8px;
-  line-height: 1.6;
-}
-
-/* Section titles */
-.section-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 24px 0 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.section-desc {
-  color: var(--text-dim);
-  font-size: 0.9rem;
-  margin-bottom: 16px;
-}
-
-/* All-select button */
-.select-all-btn {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  cursor: pointer;
-  margin-bottom: 12px;
-}
-
-.select-all-btn:hover { color: var(--text); border-color: var(--primary-light); }
-
-/* Responsive */
-@media (max-width: 600px) {
-  .app-header h1 { font-size: 1.4rem; }
-  .category-grid { grid-template-columns: 1fr; }
-  .question-card { padding: 20px; }
-  .matching-row { flex-direction: column; gap: 6px; }
-  .matching-term, .matching-select { min-width: 100%; }
-  .score-circle { width: 120px; height: 120px; font-size: 2rem; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音楽業界クイズ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #0f0a1a 0%, #1a0f2e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(124, 58, 237, 0.2);
+            border-top: 3px solid #7c3aed;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Screen Display */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h1 {
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .start-screen .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 50px;
+        }
+
+        .start-screen p {
+            font-size: 1rem;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        /* Category Selection */
+        .category-header {
+            margin-bottom: 30px;
+        }
+
+        .category-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            background: #1a1333;
+            border: 2px solid #2d1f4d;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .category-card:hover {
+            border-color: #7c3aed;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(124, 58, 237, 0.2);
+        }
+
+        .category-card.selected {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(59, 130, 246, 0.2));
+            border-color: #7c3aed;
+        }
+
+        .category-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #7c3aed;
+        }
+
+        .category-card .count {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Question Count Selection */
+        .count-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .count-btn {
+            padding: 15px;
+            background: #1a1333;
+            border: 2px solid #2d1f4d;
+            border-radius: 8px;
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .count-btn:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        .count-btn.selected {
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* Quiz Screen */
+        .quiz-container {
+            background: #1a1333;
+            border: 1px solid #2d1f4d;
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #2d1f4d;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #3b82f6);
+            transition: width 0.3s ease;
+        }
+
+        .question-info {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .blank-placeholder {
+            background: #2d1f4d;
+            color: #7c3aed;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            background: #2d1f4d;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: #e2e8f0;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .option-btn.true-false {
+            grid-column: auto;
+        }
+
+        .true-false-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Matching Questions */
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .matching-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .matching-term, .matching-definition {
+            padding: 12px;
+            background: #2d1f4d;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+        }
+
+        .matching-term:hover, .matching-definition:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .matching-term.selected, .matching-definition.selected {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.2);
+        }
+
+        .matching-term.paired, .matching-definition.paired {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            cursor: default;
+        }
+
+        .matching-term.paired:hover, .matching-definition.paired:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .matching-pair-display {
+            grid-column: 1 / -1;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .paired-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Feedback Animation */
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            color: #10b981;
+            animation: correctFlash 0.6s ease;
+        }
+
+        @keyframes correctFlash {
+            0% { background: rgba(16, 185, 129, 0.5); }
+            100% { background: rgba(16, 185, 129, 0.2); }
+        }
+
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            animation: incorrectShake 0.5s ease;
+        }
+
+        @keyframes incorrectShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .feedback h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .feedback p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .feedback .explanation {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid currentColor;
+            opacity: 0.9;
+        }
+
+        /* Results Screen */
+        .results-container {
+            background: #1a1333;
+            border: 1px solid #2d1f4d;
+            border-radius: 12px;
+            padding: 30px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .results-header h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+        }
+
+        .score-details {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .percentage {
+            font-size: 1.3rem;
+            color: #94a3b8;
+        }
+
+        .results-section {
+            margin: 30px 0;
+        }
+
+        .results-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #7c3aed;
+            border-bottom: 2px solid #2d1f4d;
+            padding-bottom: 10px;
+        }
+
+        .category-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #2d1f4d;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .category-result .name {
+            font-weight: 600;
+        }
+
+        .category-result .accuracy {
+            color: #94a3b8;
+        }
+
+        .incorrect-questions {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .incorrect-item {
+            background: #2d1f4d;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+        }
+
+        .incorrect-item .q-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #e2e8f0;
+        }
+
+        .incorrect-item .answer-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 15px;
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+
+        .incorrect-item .label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .incorrect-item .your-answer {
+            color: #ef4444;
+        }
+
+        .incorrect-item .correct-answer {
+            color: #10b981;
+        }
+
+        .results-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .quiz-container, .results-container {
+                padding: 20px;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .matching-container {
+                grid-template-columns: 1fr;
+            }
+
+            .results-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .score-display {
+                font-size: 2rem;
+            }
+
+            .category-result {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        .loading-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-screen h2 {
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+    </style>
 </head>
 <body>
-<div class="app-container">
-  <header class="app-header">
-    <h1>♪ 音楽業界クイズ</h1>
-    <p class="subtitle">Music Industry Knowledge Quiz</p>
-  </header>
+    <div id="app">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <div class="start-screen">
+                <h1>🎵 音楽業界クイズ</h1>
+                <p class="subtitle">音楽産業の知識をテストしよう</p>
+                <p>音楽業界に関するクイズに挑戦します。<br>複数のカテゴリから問題を選んで、自分の知識を試してみてください！</p>
+                <button class="btn btn-primary" onclick="showCategoryScreen()">スタート</button>
+            </div>
+        </div>
 
-  <!-- Home / Category Selection -->
-  <div id="screen-home" class="screen active">
-    <div class="section-title">カテゴリを選択</div>
-    <p class="section-desc">出題するカテゴリを選んでください（複数選択可）</p>
-    <button class="select-all-btn" id="btn-select-all">すべて選択 / 解除</button>
-    <div class="category-grid" id="category-grid"></div>
+        <!-- Category Selection Screen -->
+        <div id="categoryScreen" class="screen">
+            <div class="category-header">
+                <h2>カテゴリを選択</h2>
+            </div>
+            <div class="controls">
+                <button class="btn btn-secondary btn-small" onclick="selectAllCategories()">全選択</button>
+                <button class="btn btn-secondary btn-small" onclick="deselectAllCategories()">全解除</button>
+            </div>
+            <div class="category-grid" id="categoryGrid"></div>
+            <div class="category-actions">
+                <button class="btn btn-secondary" onclick="showStartScreen()">戻る</button>
+                <button class="btn btn-primary" onclick="showCountScreen()">次へ</button>
+            </div>
+        </div>
 
-    <div class="section-title">出題数</div>
-    <div class="count-selector" id="count-selector"></div>
+        <!-- Question Count Selection Screen -->
+        <div id="countScreen" class="screen">
+            <div class="category-header">
+                <h2>問題数を選択</h2>
+            </div>
+            <div class="count-buttons">
+                <button class="count-btn" onclick="selectQuestionCount(5)">5問</button>
+                <button class="count-btn" onclick="selectQuestionCount(10)">10問</button>
+                <button class="count-btn" onclick="selectQuestionCount(20)">20問</button>
+                <button class="count-btn" onclick="selectQuestionCount(null)">全問</button>
+            </div>
+            <div class="category-actions">
+                <button class="btn btn-secondary" onclick="showCategoryScreen()">戻る</button>
+                <button class="btn btn-primary" onclick="startQuiz()">スタート</button>
+            </div>
+        </div>
 
-    <div class="btn-group">
-      <button class="btn btn-primary" id="btn-start" disabled>クイズを開始</button>
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="screen">
+            <div class="quiz-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-info">
+                    <span id="questionNumber">1</span> / <span id="totalQuestions">10</span>
+                </div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-container">
+                <div class="results-header">
+                    <h2>クイズ結果</h2>
+                    <div class="score-display" id="scoreDisplay">0</div>
+                    <div class="score-details" id="scoreDetails">0 / 0</div>
+                    <div class="percentage" id="percentageDisplay">0%</div>
+                </div>
+
+                <div class="results-section">
+                    <h3>カテゴリ別正答率</h3>
+                    <div id="categoryResults"></div>
+                </div>
+
+                <div class="results-section" id="incorrectSection" style="display: none;">
+                    <h3>間違った問題</h3>
+                    <div class="incorrect-questions" id="incorrectQuestions"></div>
+                </div>
+
+                <div class="results-actions">
+                    <button class="btn btn-secondary" onclick="showCategoryScreen()">カテゴリ選択に戻る</button>
+                    <button class="btn btn-primary" onclick="showCategoryScreen()">もう一度</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loadingScreen" class="screen active">
+            <div class="loading-screen">
+                <h2>読み込み中...</h2>
+                <div class="spinner"></div>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <!-- Quiz Screen -->
-  <div id="screen-quiz" class="screen">
-    <div class="progress-container">
-      <div class="progress-info">
-        <span id="progress-text">1 / 10</span>
-        <span id="score-text">正解: 0</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progress-fill"></div>
-      </div>
-    </div>
-    <div class="question-card" id="question-card"></div>
-    <div class="btn-group">
-      <button class="btn btn-primary" id="btn-next" style="display:none">次の問題へ</button>
-    </div>
-  </div>
-
-  <!-- Result Screen -->
-  <div id="screen-result" class="screen">
-    <div class="result-card">
-      <div class="score-circle" id="score-circle">
-        <span id="final-score">0</span>
-        <span class="score-label">点</span>
-      </div>
-      <div class="result-message" id="result-message"></div>
-      <div class="result-sub" id="result-sub"></div>
-    </div>
-
-    <div class="section-title">カテゴリ別 正答率</div>
-    <div class="cat-stats-grid" id="cat-stats-grid"></div>
-
-    <div class="review-section" id="review-section">
-      <h3>間違えた問題の復習</h3>
-      <div id="review-list"></div>
-    </div>
-
-    <div class="btn-group">
-      <button class="btn btn-secondary" id="btn-retry-wrong" style="display:none">間違えた問題を再挑戦</button>
-      <button class="btn btn-primary" id="btn-home">トップに戻る</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ========================================================
-// 問題データ（将来的に外部JSONに切り出し可能な構造）
-// ========================================================
-const quizData = {
-  categories: [
-    { id: 1, name: "音楽業界の基礎知識", icon: "🎵" },
-    { id: 2, name: "業界団体", icon: "🏛️" },
-    { id: 3, name: "配信事業", icon: "📱" },
-    { id: 4, name: "メタデータ", icon: "🔢" },
-    { id: 5, name: "出版社業界", icon: "📝" },
-    { id: 6, name: "実演家団体", icon: "🎤" },
-    { id: 7, name: "著作権", icon: "©️" },
-    { id: 8, name: "放送二次使用料", icon: "📡" },
-    { id: 9, name: "音楽原盤", icon: "💿" },
-    { id: 10, name: "レコード会社・レーベル", icon: "🏢" },
-    { id: 11, name: "プロモーション・マーケティング", icon: "📣" },
-    { id: 12, name: "ライブ・コンサート事業", icon: "🎸" },
-    { id: 13, name: "国際条約・法制度", icon: "🌐" },
-    { id: 14, name: "音楽テクノロジー", icon: "🤖" }
-  ],
-
-  questions: [
-    // ===== カテゴリ1: 音楽業界の基礎知識 =====
-    {
-      id: 1, category: 1, type: "multiple",
-      question: "音楽の権利は大きく2つに分かれます。「著作権」ともう1つは何でしょう？",
-      options: ["著作隣接権", "肖像権", "特許権", "商標権"],
-      answer: 0,
-      explanation: "音楽の権利は「著作権」（作詞家・作曲家の権利）と「著作隣接権」（実演家・レコード製作者・放送事業者の権利）に大別されます。著作権法で定められた基本的な権利構造です。"
-    },
-    {
-      id: 2, category: 1, type: "truefalse",
-      question: "「作詞家」と「作曲家」は著作隣接権者である。",
-      answer: false,
-      explanation: "作詞家・作曲家は「著作権者（著作者）」です。著作隣接権者は実演家、レコード製作者、放送事業者、有線放送事業者を指します。"
-    },
-    {
-      id: 3, category: 1, type: "multiple",
-      question: "音楽業界における「印税」の英語表記として正しいものはどれですか？",
-      options: ["Royalty", "Commission", "Dividend", "Premium"],
-      answer: 0,
-      explanation: "音楽業界で使われる「印税」は英語で「Royalty（ロイヤルティ）」と呼ばれます。楽曲の使用に対して権利者に支払われる対価のことです。"
-    },
-    {
-      id: 4, category: 1, type: "fillin",
-      question: "音楽の権利処理において、作詞・作曲に関する権利を「___権」、録音された音源に関する権利を「原盤権」と呼びます。",
-      options: ["著作", "演奏", "録音", "配信"],
-      answer: 0,
-      explanation: "作詞・作曲に関する権利は「著作権」、録音された音源（マスター）に関する権利は「原盤権」と呼ばれ、音楽ビジネスではこの2つの権利処理が基本となります。"
-    },
-
-    // ===== カテゴリ2: 業界団体 =====
-    {
-      id: 5, category: 2, type: "multiple",
-      question: "JASRACとNexToneの契約形態の違いとして正しいのはどれですか？",
-      options: [
-        "JASRACは信託契約、NexToneは委任契約（取次ぎ）",
-        "JASRACは委任契約、NexToneは信託契約",
-        "どちらも信託契約",
-        "どちらも委任契約"
-      ],
-      answer: 0,
-      explanation: "JASRACは「信託契約」により著作権が委託者からJASRACに移転します。一方NexToneは「委任契約」における「取次ぎ」であり、著作権は権利者に留まったままです。この違いは権利者にとって大きな意味を持ちます。"
-    },
-    {
-      id: 6, category: 2, type: "truefalse",
-      question: "日本の音楽著作権管理事業者はJASRACの1社独占であり、他に管理事業者は存在しない。",
-      answer: false,
-      explanation: "2001年の著作権等管理事業法施行後、NexTone（旧イーライセンスとジャパン・ライツ・クリアランスが合併）が参入し、現在はJASRACとNexToneの2社が大手として全体の95%以上を管理しています。"
-    },
-    {
-      id: 7, category: 2, type: "multiple",
-      question: "日本レコード協会（RIAJ）の主な役割として正しいものはどれですか？",
-      options: [
-        "レコード製作者の権利擁護とISRCの管理",
-        "作詞家・作曲家への印税分配",
-        "コンサートチケットの販売管理",
-        "放送番組の制作管理"
-      ],
-      answer: 0,
-      explanation: "日本レコード協会（RIAJ）は、レコード製作者の権利擁護、音楽文化の振興、ISRCの日本国内での管理・発行などを担う業界団体です。ゴールドディスク認定なども行っています。"
-    },
-    {
-      id: 8, category: 2, type: "fillin",
-      question: "NexToneは2016年に「イーライセンス」と「___」が合併して誕生した著作権管理事業者です。",
-      options: ["ジャパン・ライツ・クリアランス", "日本音楽出版社協会", "音楽制作者連盟", "日本芸能実演家団体協議会"],
-      answer: 0,
-      explanation: "NexToneは、2016年にイーライセンスとジャパン・ライツ・クリアランス（JRC）が合併して誕生しました。JASRACに次ぐ音楽著作権管理事業者として成長を続けています。"
-    },
-
-    // ===== カテゴリ3: 配信事業 =====
-    {
-      id: 9, category: 3, type: "multiple",
-      question: "2025年時点で、世界の音楽ストリーミング市場シェアが最も高いサービスはどれですか？",
-      options: ["Spotify", "Apple Music", "YouTube Music", "Amazon Music"],
-      answer: 0,
-      explanation: "2025年時点で、Spotifyが世界の音楽ストリーミング市場で約31〜37%のシェアを占めトップです。Apple Musicが約12〜15%、Amazon MusicやYouTube Musicが約10%前後で続いています。"
-    },
-    {
-      id: 10, category: 3, type: "truefalse",
-      question: "Spotifyのビジネスモデルは、有料会員（プレミアム）の収入のみで成り立っている。",
-      answer: false,
-      explanation: "Spotifyは「フリーミアムモデル」を採用しています。無料の広告付きプラン（Free）と有料のプレミアムプランの2種類があり、広告収入とサブスクリプション収入の両方で運営されています。"
-    },
-    {
-      id: 11, category: 3, type: "multiple",
-      question: "音楽配信における「DSP」の正式名称は何ですか？",
-      options: [
-        "Digital Service Provider",
-        "Digital Sound Platform",
-        "Digital Streaming Protocol",
-        "Digital Song Publisher"
-      ],
-      answer: 0,
-      explanation: "DSPは「Digital Service Provider（デジタルサービスプロバイダー）」の略で、SpotifyやApple Musicなどの音楽配信サービスを指します。レコード会社やディストリビューターからコンテンツを受け取り、ユーザーに配信します。"
-    },
-    {
-      id: 12, category: 3, type: "multiple",
-      question: "音楽配信でアーティストが楽曲を各DSPに届けるために利用する仲介業者を何と呼びますか？",
-      options: ["ディストリビューター", "プロモーター", "パブリッシャー", "エージェント"],
-      answer: 0,
-      explanation: "ディストリビューター（配信代行/流通業者）は、アーティストやレーベルの楽曲を各DSP（Spotify、Apple Musicなど）に配信する仲介業者です。TuneCore、DistroKid、CD Babyなどが代表的です。"
-    },
-
-    // ===== カテゴリ4: メタデータ =====
-    {
-      id: 13, category: 4, type: "multiple",
-      question: "ISRCは何の国際標準コードですか？",
-      options: [
-        "個々のレコーディング（録音・録画）の識別",
-        "楽曲の著作権登録",
-        "アルバムの商品管理",
-        "アーティストの国際登録"
-      ],
-      answer: 0,
-      explanation: "ISRC（International Standard Recording Code）は、個々のオーディオまたはビデオレコーディングに割り当てられる国際標準コードです。録音物の「指紋」のようなもので、配信・販売・統計に使用されます。日本ではRIAJ（日本レコード協会）が登録機関です。"
-    },
-    {
-      id: 14, category: 4, type: "multiple",
-      question: "楽曲（作品）単位で付与される国際標準コードはどれですか？",
-      options: ["ISWC", "ISRC", "UPC", "EAN"],
-      answer: 0,
-      explanation: "ISWC（International Standard Musical Work Code）は楽曲（著作物）単位で付与されるコードです。ISRCが録音物に付くのに対し、ISWCは楽曲の著作権情報に紐づきます。同じ楽曲の異なるカバーやリミックスも同じISWCを持ちます。"
-    },
-    {
-      id: 15, category: 4, type: "fillin",
-      question: "DDEXは「Digital Data ___」の略称で、音楽業界のデジタルデータ交換の標準化を推進する国際団体です。",
-      options: ["Exchange", "Extension", "Express", "Encryption"],
-      answer: 0,
-      explanation: "DDEX（Digital Data Exchange）は、レコード会社、DSP、著作権管理団体などが参加し、デジタル音楽バリューチェーンにおけるデータ交換の標準規格を策定しています。ERN（Electronic Release Notification）などの規格を定めています。"
-    },
-    {
-      id: 16, category: 4, type: "truefalse",
-      question: "ISRCとISWCは同じコード体系であり、互換性がある。",
-      answer: false,
-      explanation: "ISRCは録音物（レコーディング）に付与されるコード、ISWCは楽曲（著作物・音楽作品）に付与されるコードで、まったく別の体系です。1つの楽曲（ISWC）に対して複数の録音（ISRC）が存在し得ます。"
-    },
-
-    // ===== カテゴリ5: 出版社業界 =====
-    {
-      id: 17, category: 5, type: "multiple",
-      question: "音楽出版社の主な役割として最も適切なものはどれですか？",
-      options: [
-        "楽曲の著作権管理と利用促進（プロモーション）",
-        "CDの製造と物流管理",
-        "コンサートの企画と運営",
-        "アーティストのマネジメント"
-      ],
-      answer: 0,
-      explanation: "音楽出版社は、作詞家・作曲家から著作権の譲渡を受け（または管理委託を受け）、楽曲のプロモーション（CM、映画、ドラマへの売り込み等）と著作権使用料の徴収・分配を行う企業です。"
-    },
-    {
-      id: 18, category: 5, type: "multiple",
-      question: "海外の楽曲を日本国内で管理する音楽出版社のことを何と呼びますか？",
-      options: ["サブパブリッシャー", "オリジナルパブリッシャー", "ディストリビューター", "コレクティングエージェント"],
-      answer: 0,
-      explanation: "サブパブリッシャーとは、オリジナルパブリッシャー（原出版社）と契約し、特定の地域（テリトリー）における楽曲の著作権管理・利用促進を行う音楽出版社です。海外楽曲の日本での利用にはサブパブリッシャーの許諾が必要になることがあります。"
-    },
-    {
-      id: 19, category: 5, type: "fillin",
-      question: "映像作品（CM・映画・ゲーム等）に音楽を同期させて使用する権利を「___権」と呼びます。",
-      options: ["シンクロナイゼーション", "パフォーマンス", "メカニカル", "デジタル"],
-      answer: 0,
-      explanation: "シンクロナイゼーション権（シンクロ権/Sync権）は、映像と音楽を同期させて使用する際に必要な権利です。CM、映画、ゲーム、ドラマなどで楽曲を使用する場合に権利処理が必要で、特に外国曲では音楽出版社（サブパブリッシャー）から許諾を得る必要があります。"
-    },
-    {
-      id: 20, category: 5, type: "truefalse",
-      question: "メカニカルロイヤルティとは、楽曲のライブ演奏に対して支払われる使用料のことである。",
-      answer: false,
-      explanation: "メカニカルロイヤルティ（機械的複製権使用料）は、楽曲がCDやデジタル配信として「複製」される際に支払われる使用料です。ライブ演奏に対する使用料は「演奏権使用料（パフォーマンスロイヤルティ）」と呼ばれます。"
-    },
-
-    // ===== カテゴリ6: 実演家団体 =====
-    {
-      id: 21, category: 6, type: "multiple",
-      question: "芸団協CPRAの正式名称は何ですか？",
-      options: [
-        "実演家著作隣接権センター",
-        "日本音楽著作権協会",
-        "日本芸能制作者連盟",
-        "日本音楽事業者協会"
-      ],
-      answer: 0,
-      explanation: "CPRA（Center for Performers' Rights Administration）は「実演家著作隣接権センター」の略称です。1993年に芸団協（日本芸能実演家団体協議会）の中に設立され、実演家の著作隣接権の管理・処理業務を行っています。"
-    },
-    {
-      id: 22, category: 6, type: "truefalse",
-      question: "芸団協CPRAは、文化庁長官の指定を受けて商業用レコード二次使用料の請求権を行使している。",
-      answer: true,
-      explanation: "芸団協CPRAは、著作権法の規定に基づき文化庁長官に指定された団体として、商業用レコードの放送・有線放送使用に関する二次使用料を、実演家に代わって放送局等から徴収し、分配しています。"
-    },
-    {
-      id: 23, category: 6, type: "multiple",
-      question: "日本音楽制作者連盟（音制連/FMPJ）は主にどのような立場の団体ですか？",
-      options: [
-        "アーティストのマネジメント事務所の団体",
-        "作曲家の権利管理団体",
-        "レコード会社の業界団体",
-        "音楽教育の推進団体"
-      ],
-      answer: 0,
-      explanation: "日本音楽制作者連盟（FMPJ/音制連）は、音楽アーティストのマネジメントを行うプロダクション（芸能事務所）が加盟する業界団体です。実演家の権利保護や業界の健全な発展を目指しています。"
-    },
-
-    // ===== カテゴリ7: 著作権 =====
-    {
-      id: 24, category: 7, type: "multiple",
-      question: "日本の著作権法において、著作権の保護期間は原則として著作者の死後何年ですか？",
-      options: ["70年", "50年", "100年", "30年"],
-      answer: 0,
-      explanation: "2018年のTPP11協定発効に伴う法改正により、日本の著作権の保護期間は著作者の死後50年から死後70年に延長されました。これは欧米諸国と足並みを揃えるものです。"
-    },
-    {
-      id: 25, category: 7, type: "truefalse",
-      question: "著作権は特許と同様に、登録しなければ発生しない。",
-      answer: false,
-      explanation: "著作権は「無方式主義」を採用しており、著作物が創作された時点で自動的に発生します。特許権や商標権のように登録手続きは必要ありません。これはベルヌ条約の基本原則でもあります。"
-    },
-    {
-      id: 26, category: 7, type: "multiple",
-      question: "著作者人格権に含まれないものはどれですか？",
-      options: ["複製権", "公表権", "氏名表示権", "同一性保持権"],
-      answer: 0,
-      explanation: "著作者人格権には「公表権」「氏名表示権」「同一性保持権」の3つがあります。「複製権」は著作財産権に分類されます。著作者人格権は一身専属の権利で、譲渡できません。"
-    },
-    {
-      id: 27, category: 7, type: "fillin",
-      question: "著作権法において、私的使用のための複製は「第___条」で規定されています。",
-      options: ["30", "21", "38", "45"],
-      answer: 0,
-      explanation: "著作権法第30条は「私的使用のための複製」を規定しており、個人的にまたは家庭内その他これに準ずる限られた範囲内において使用することを目的とする場合、一定の条件のもとで複製が認められています。"
-    },
-
-    // ===== カテゴリ8: 放送二次使用料 =====
-    {
-      id: 28, category: 8, type: "multiple",
-      question: "放送二次使用料とは何に対して支払われる使用料ですか？",
-      options: [
-        "商業用レコード（市販CD等）を放送で使用すること",
-        "テレビ番組を再放送すること",
-        "楽曲をカラオケで使用すること",
-        "音楽配信サービスで楽曲を配信すること"
-      ],
-      answer: 0,
-      explanation: "放送二次使用料は、市販の商業用レコード（CDなど）をテレビやラジオで放送使用した場合に、放送事業者が実演家およびレコード製作者に支払う使用料です。著作権法第95条・第97条に基づきます。"
-    },
-    {
-      id: 29, category: 8, type: "truefalse",
-      question: "放送二次使用料は、実演家とレコード製作者の両方に支払われる。",
-      answer: true,
-      explanation: "放送二次使用料は、実演家（著作権法第95条に基づく）とレコード製作者（第97条に基づく）の双方に支払われます。実演家分は芸団協CPRAが、レコード製作者分は日本レコード協会がそれぞれ徴収・分配を行います。"
-    },
-    {
-      id: 30, category: 8, type: "multiple",
-      question: "レコード製作者への放送二次使用料の徴収・分配を行っている団体はどこですか？",
-      options: [
-        "日本レコード協会（RIAJ）",
-        "JASRAC",
-        "芸団協CPRA",
-        "NexTone"
-      ],
-      answer: 0,
-      explanation: "レコード製作者への放送二次使用料は、日本レコード協会（RIAJ）が文化庁長官の指定を受けて徴収・分配を行っています。実演家分は芸団協CPRAが同様に行います。"
-    },
-
-    // ===== カテゴリ9: 音楽原盤 =====
-    {
-      id: 31, category: 9, type: "multiple",
-      question: "「原盤権」とは何に対する権利ですか？",
-      options: [
-        "完成した音源（マスター音源）に対する権利",
-        "作詞・作曲に対する権利",
-        "アーティストの肖像に対する権利",
-        "楽譜に対する権利"
-      ],
-      answer: 0,
-      explanation: "原盤権とは、音楽を録音・編集して完成した音源（マスター音源/原盤）に対して発生する権利です。著作隣接権の一つであり、原盤の制作費用を負担した者（レコード会社や音楽事務所など）が保有するのが一般的です。"
-    },
-    {
-      id: 32, category: 9, type: "truefalse",
-      question: "原盤権は通常、レコーディング費用を負担した者が保有する。",
-      answer: true,
-      explanation: "原盤権は原則として、レコーディング（録音）の費用を負担し制作を企画・責任を持った者（レコード製作者）に帰属します。多くの場合レコード会社ですが、事務所やアーティスト自身が費用を負担して保有するケースもあります。"
-    },
-    {
-      id: 33, category: 9, type: "multiple",
-      question: "アーティストが自身で原盤権を保有するメリットとして最も適切なものはどれですか？",
-      options: [
-        "音源の利用に関する決定権と収益の取り分が大きくなる",
-        "JASRACへの登録が不要になる",
-        "著作権の保護期間が延長される",
-        "ライブでの演奏許可が不要になる"
-      ],
-      answer: 0,
-      explanation: "アーティストが原盤権を自身で保有すると、音源の利用（配信先の選択、CM使用の許諾など）を自分で決定でき、原盤使用料の収益もレコード会社を通さず直接受け取れるため、取り分が大きくなります。"
-    },
-
-    // ===== カテゴリ10: レコード会社・レーベル =====
-    {
-      id: 34, category: 10, type: "matching",
-      question: "世界3大メジャーレーベルと、その親会社を正しく結びつけてください。",
-      pairs: [
-        { term: "ユニバーサルミュージック", options: ["ヴィヴェンディ", "ソニーグループ", "ワーナー・ブラザース・ディスカバリー"], answer: 0 },
-        { term: "ソニー・ミュージック", options: ["ソニーグループ", "ヴィヴェンディ", "アクセス・インダストリーズ"], answer: 0 },
-        { term: "ワーナーミュージック", options: ["アクセス・インダストリーズ", "ソニーグループ", "ヴィヴェンディ"], answer: 0 }
-      ],
-      explanation: "世界3大メジャーレーベルは、ユニバーサルミュージック（親会社：ヴィヴェンディ）、ソニー・ミュージック（親会社：ソニーグループ）、ワーナーミュージック（親会社：アクセス・インダストリーズ）です。この3社で世界のレコード市場の約60〜70%を占めています。"
-    },
-    {
-      id: 35, category: 10, type: "truefalse",
-      question: "日本では「メジャーレーベル」の定義は、日本レコード協会に加盟しているかどうかで判断される。",
-      answer: true,
-      explanation: "日本国内では慣例的に、日本レコード協会（RIAJ）の正会員であるレコード会社から発売されることが「メジャー」の条件とされています。グローバルでは3大メジャーを指しますが、日本のビクターやポニーキャニオンなどは「ドメスティックメジャー」とも呼ばれます。"
-    },
-    {
-      id: 36, category: 10, type: "multiple",
-      question: "「レコード会社」と「レーベル」の関係として最も正しいものはどれですか？",
-      options: [
-        "1つのレコード会社が複数のレーベルを持つことがある",
-        "レコード会社とレーベルは完全に同じ意味",
-        "レーベルは必ず独立した会社である",
-        "1つのレーベルが複数のレコード会社を傘下に持つ"
-      ],
-      answer: 0,
-      explanation: "レーベルは音楽のブランド名のようなもので、1つのレコード会社が音楽ジャンルやアーティストのカラーに合わせて複数のレーベルを運営することが一般的です。例えばソニー・ミュージックはエピックレコード、キューンミュージックなど複数のレーベルを持っています。"
-    },
-
-    // ===== カテゴリ11: プロモーション・マーケティング =====
-    {
-      id: 37, category: 11, type: "multiple",
-      question: "音楽マーケティングにおける「A&R」の正式名称は何ですか？",
-      options: [
-        "Artist and Repertoire",
-        "Advertising and Revenue",
-        "Audio and Recording",
-        "Artist and Rights"
-      ],
-      answer: 0,
-      explanation: "A&R（Artist and Repertoire）は、アーティストの発掘・育成、楽曲のレパートリー管理、制作方針の決定などを担当する職種です。レコード会社の中核的な業務の一つで、新人発掘からリリース戦略までを統括します。"
-    },
-    {
-      id: 38, category: 11, type: "truefalse",
-      question: "プレイリスト・ピッチングとは、SpotifyやApple Musicの公式プレイリストに楽曲を入れてもらうよう申請・売り込みすることである。",
-      answer: true,
-      explanation: "プレイリスト・ピッチングは、ストリーミング時代の重要なプロモーション手法です。Spotifyでは「Spotify for Artists」を通じてリリース前の楽曲をエディトリアルプレイリストに推薦でき、採用されれば大幅な再生数増加が期待できます。"
-    },
-    {
-      id: 39, category: 11, type: "multiple",
-      question: "音楽プロモーションにおける「バイラルマーケティング」の説明として正しいものはどれですか？",
-      options: [
-        "SNS等での口コミ・シェアにより自然拡散を狙う手法",
-        "テレビCMに大量投資する手法",
-        "レコード店での店頭展開を重視する手法",
-        "ラジオ局への一斉プロモーション"
-      ],
-      answer: 0,
-      explanation: "バイラルマーケティングは、TikTokやInstagram、X（Twitter）などのSNSでのシェアや口コミによる自然な拡散を狙う手法です。近年はTikTokでの楽曲使用がヒットのきっかけになるケースが増えています。"
-    },
-
-    // ===== カテゴリ12: ライブ・コンサート事業 =====
-    {
-      id: 40, category: 12, type: "multiple",
-      question: "ライブ・コンサートの企画・制作・運営を行う事業者を何と呼びますか？",
-      options: ["プロモーター", "ディストリビューター", "パブリッシャー", "エージェント"],
-      answer: 0,
-      explanation: "ライブのプロモーター（コンサートプロモーター）は、公演の企画・制作・チケット販売・会場運営までを担当します。日本ではキョードー東京、ディスクガレージ、ウドー音楽事務所などが大手プロモーターとして知られています。"
-    },
-    {
-      id: 41, category: 12, type: "truefalse",
-      question: "コンサートで楽曲を演奏する場合、JASRACなどへの著作権使用料の支払いは不要である。",
-      answer: false,
-      explanation: "コンサートで楽曲を演奏する場合、演奏権に基づく著作権使用料をJASRAC等に支払う必要があります。通常はコンサート主催者（プロモーター）が支払います。ただし、非営利・無料・無報酬の場合は例外規定（第38条）があります。"
-    },
-    {
-      id: 42, category: 12, type: "multiple",
-      question: "ライブビジネスの収益源として一般的でないものはどれですか？",
-      options: [
-        "楽曲の著作権使用料の受け取り",
-        "チケット販売収入",
-        "グッズ（物販）収入",
-        "スポンサー収入"
-      ],
-      answer: 0,
-      explanation: "ライブビジネスの主な収益源は、チケット販売収入、グッズ（物販）収入、スポンサー収入、飲食販売収入などです。著作権使用料はライブ主催者が「支払う」ものであり、収益源ではありません。"
-    },
-
-    // ===== カテゴリ13: 国際条約・法制度 =====
-    {
-      id: 43, category: 13, type: "multiple",
-      question: "ベルヌ条約が最初に採択された年はいつですか？",
-      options: ["1886年", "1961年", "1996年", "1952年"],
-      answer: 0,
-      explanation: "ベルヌ条約（文学的及び美術的著作物の保護に関するベルヌ条約）は1886年にスイスのベルンで採択された、著作物の国際的保護に関する最初の一般条約です。日本は1899年に加入しました。"
-    },
-    {
-      id: 44, category: 13, type: "matching",
-      question: "以下の国際条約と、その保護対象を正しく結びつけてください。",
-      pairs: [
-        { term: "ベルヌ条約", options: ["著作物（著作権）", "実演家・レコード製作者・放送事業者", "特許・商標"], answer: 0 },
-        { term: "ローマ条約", options: ["実演家・レコード製作者・放送事業者", "著作物（著作権）", "意匠・デザイン"], answer: 0 },
-        { term: "WIPO著作権条約", options: ["デジタル環境下の著作権", "実演家・レコード製作者・放送事業者", "特許・商標"], answer: 0 }
-      ],
-      explanation: "ベルヌ条約（1886年）は著作物の保護、ローマ条約（1961年）は実演家・レコード製作者・放送事業者の保護（著作隣接権）、WIPO著作権条約（1996年）はデジタル環境下での著作権保護を目的としています。WIPO著作権条約は「ベルヌ条約の2階部分」とも呼ばれます。"
-    },
-    {
-      id: 45, category: 13, type: "truefalse",
-      question: "ベルヌ条約では「無方式主義」が採用されており、著作権の発生に登録は不要とされている。",
-      answer: true,
-      explanation: "ベルヌ条約の基本原則の一つに「無方式主義」があり、著作権は著作物の創作と同時に自動的に発生し、登録や表示（©マークなど）は権利発生の要件とされていません。"
-    },
-    {
-      id: 46, category: 13, type: "multiple",
-      question: "WIPO実演・レコード条約（WPPT）が採択された年はいつですか？",
-      options: ["1996年", "1886年", "1961年", "2012年"],
-      answer: 0,
-      explanation: "WIPO実演・レコード条約（WPPT）は1996年にWIPO著作権条約（WCT）と同時に採択されました。デジタル環境における実演家とレコード製作者の権利保護を強化するもので、ローマ条約を補完する役割を持っています。"
-    },
-
-    // ===== カテゴリ14: 音楽テクノロジー =====
-    {
-      id: 47, category: 14, type: "multiple",
-      question: "AI音楽生成ツールとして知られるサービスはどれですか？",
-      options: ["Suno", "Canva", "Notion", "Figma"],
-      answer: 0,
-      explanation: "Suno（スノ）は、テキストプロンプトから楽曲を自動生成できるAI音楽生成サービスです。同様のサービスにはUdio、Stable Audioなどがあり、2024〜2025年にかけて急速に進化・普及しています。"
-    },
-    {
-      id: 48, category: 14, type: "truefalse",
-      question: "Apple Musicの「空間オーディオ」は、Dolby Atmosテクノロジーを使用している。",
-      answer: true,
-      explanation: "Apple Musicの空間オーディオは、Dolby Atmos技術を採用しています。従来のステレオ（2チャンネル）ではなく、リスナーの周囲に音を配置する立体的な音響体験を提供し、対応するヘッドフォンやスピーカーで楽しめます。"
-    },
-    {
-      id: 49, category: 14, type: "multiple",
-      question: "ブロックチェーン技術の音楽業界での活用例として最も適切なものはどれですか？",
-      options: [
-        "権利情報の透明な記録とロイヤルティの自動分配",
-        "音質の向上とノイズ除去",
-        "ライブチケットの印刷技術",
-        "楽器の音色シミュレーション"
-      ],
-      answer: 0,
-      explanation: "ブロックチェーン技術は、音楽の権利情報を改ざん不可能な形で記録し、スマートコントラクトによりロイヤルティを自動的かつ透明に分配する仕組みとして期待されています。権利の追跡やNFTによるデジタルコレクタブルなどの応用もあります。"
-    },
-    {
-      id: 50, category: 14, type: "multiple",
-      question: "音楽NFTの「NFT」は何の略ですか？",
-      options: [
-        "Non-Fungible Token",
-        "New File Transfer",
-        "Network Function Technology",
-        "Next Format Template"
-      ],
-      answer: 0,
-      explanation: "NFTは「Non-Fungible Token（非代替性トークン）」の略です。音楽NFTは、楽曲やアートワークなどのデジタルコンテンツに唯一性を持たせ、所有権をブロックチェーン上で証明・取引できる仕組みです。"
-    },
-
-    // ===== 追加問題（各カテゴリの厚みを増す） =====
-
-    // カテゴリ1追加
-    {
-      id: 51, category: 1, type: "matching",
-      question: "以下の用語と説明を正しく結びつけてください。",
-      pairs: [
-        { term: "著作権", options: ["作詞家・作曲家の権利", "レコード会社の権利", "放送局の権利"], answer: 0 },
-        { term: "著作隣接権", options: ["実演家・レコード製作者等の権利", "作詞家・作曲家の権利", "映画監督の権利"], answer: 0 },
-        { term: "原盤権", options: ["マスター音源に対する権利", "楽譜に対する権利", "ライブ演奏の権利"], answer: 0 }
-      ],
-      explanation: "著作権は楽曲の創作者（作詞家・作曲家）の権利、著作隣接権は実演家・レコード製作者・放送事業者の権利、原盤権は録音・編集して完成したマスター音源に対する権利です。"
-    },
-
-    // カテゴリ3追加
-    {
-      id: 52, category: 3, type: "truefalse",
-      question: "Spotifyは「プロラタ方式」で権利者への支払いを計算している。",
-      answer: true,
-      explanation: "Spotifyはプロラタ（比例配分）方式を採用しており、全体の売上プールから各楽曲の再生シェアに応じて分配されます。一方で、個々のリスナーの支払いがそのリスナーが聴いたアーティストに直接配分される「ユーザーセントリック方式」も議論されています。"
-    },
-
-    // カテゴリ7追加
-    {
-      id: 53, category: 7, type: "multiple",
-      question: "著作権法で保護される「著作物」の条件として正しいものはどれですか？",
-      options: [
-        "思想又は感情を創作的に表現したもの",
-        "新規性と進歩性があるもの",
-        "商標登録されたもの",
-        "産業上利用可能なもの"
-      ],
-      answer: 0,
-      explanation: "著作権法第2条で、著作物は「思想又は感情を創作的に表現したものであって、文芸、学術、美術又は音楽の範囲に属するもの」と定義されています。「新規性と進歩性」は特許の要件です。"
-    },
-
-    // カテゴリ9追加
-    {
-      id: 54, category: 9, type: "multiple",
-      question: "著作権法において「レコード製作者」とはどのような者を指しますか？",
-      options: [
-        "レコードに固定されている音を最初に固定した者",
-        "CDを物理的に製造する工場",
-        "楽曲を作曲した者",
-        "マスタリングエンジニア"
-      ],
-      answer: 0,
-      explanation: "著作権法第2条第1項第6号により、「レコード製作者」とは「レコードに固定されている音を最初に固定した者」と定義されています。制作費用を負担し、企画・責任を持って録音を行った主体を指します。"
-    },
-
-    // カテゴリ11追加
-    {
-      id: 55, category: 11, type: "fillin",
-      question: "音楽ストリーミング時代において、新曲リリース前にDSPの公式プレイリストに楽曲を推薦する活動を「プレイリスト・___」と呼びます。",
-      options: ["ピッチング", "ブッキング", "リリース", "マスタリング"],
-      answer: 0,
-      explanation: "プレイリスト・ピッチングは、リリース前の楽曲をSpotifyやApple Musicなどのエディトリアルプレイリストに推薦する活動です。採用されると大幅な露出増加が見込めるため、現代の音楽プロモーションの重要な施策の一つです。"
-    },
-
-    // カテゴリ12追加
-    {
-      id: 56, category: 12, type: "fillin",
-      question: "ライブの収益構造において、チケット販売以外で大きな収入源となるアーティストグッズの販売を「___」と呼びます。",
-      options: ["物販", "配信", "協賛", "出版"],
-      answer: 0,
-      explanation: "物販（ぶっぱん）とは、コンサート・ライブ会場でのグッズ販売のことです。Tシャツ、タオル、ペンライトなどが代表的で、特にアイドルやロックバンドのライブでは重要な収益源となっています。"
-    },
-
-    // カテゴリ2追加
-    {
-      id: 57, category: 2, type: "multiple",
-      question: "音楽出版社の業界団体である「MPA」の正式名称は何ですか？",
-      options: [
-        "日本音楽出版社協会",
-        "日本音楽制作者連盟",
-        "日本音楽事業者協会",
-        "日本レコード協会"
-      ],
-      answer: 0,
-      explanation: "MPA（Music Publishers Association of Japan）は日本音楽出版社協会の略称です。音楽出版社の利益代表として、著作権管理の改善や業界の発展に取り組んでいます。"
-    },
-
-    // カテゴリ6追加
-    {
-      id: 58, category: 6, type: "multiple",
-      question: "日本音楽事業者協会（音事協/JAME）の会員はどのような事業者ですか？",
-      options: [
-        "音楽に関わるアーティストのマネジメント事務所",
-        "楽器メーカー",
-        "レコードプレス工場",
-        "音楽配信サービス"
-      ],
-      answer: 0,
-      explanation: "日本音楽事業者協会（JAME/音事協）は、音楽アーティストのマネジメントを行うプロダクション等の業界団体です。音制連（FMPJ）と並ぶ主要なマネジメント事務所の業界団体で、会員数は約100社以上にのぼります。"
-    },
-
-    // カテゴリ5追加
-    {
-      id: 59, category: 5, type: "multiple",
-      question: "音楽出版社が作詞家・作曲家と締結する契約で、著作権の一部を出版社に譲渡するものを何と呼びますか？",
-      options: [
-        "著作権譲渡契約（出版契約）",
-        "マネジメント契約",
-        "レコーディング契約",
-        "ライセンス契約"
-      ],
-      answer: 0,
-      explanation: "音楽出版社は作詞家・作曲家と著作権譲渡契約（出版契約）を締結し、著作権の全部または一部の譲渡を受けます。その上でJASRACなどに管理を委託し、使用料収入を契約に基づき作家と分配します。"
-    },
-
-    // カテゴリ8追加
-    {
-      id: 60, category: 8, type: "fillin",
-      question: "放送二次使用料の法的根拠は、著作権法第___条（実演家）および第97条（レコード製作者）に規定されています。",
-      options: ["95", "30", "21", "112"],
-      answer: 0,
-      explanation: "放送二次使用料は、著作権法第95条（実演家の放送二次使用料を受ける権利）と第97条（レコード製作者の放送二次使用料を受ける権利）に基づいています。商業用レコードの放送使用に対する権利者への補償の仕組みです。"
-    },
-
-    // カテゴリ10追加
-    {
-      id: 61, category: 10, type: "multiple",
-      question: "インディーズレーベルの特徴として最も適切なものはどれですか？",
-      options: [
-        "3大メジャーに属さず独立して活動するレーベル",
-        "音楽配信を行わないレーベル",
-        "海外アーティスト専門のレーベル",
-        "クラシック音楽専門のレーベル"
-      ],
-      answer: 0,
-      explanation: "インディーズ（Independent）レーベルは、3大メジャーレーベル（ユニバーサル、ソニー、ワーナー）に属さず、独立して運営されるレーベルです。より自由な制作方針やアーティストとの密接な関係が特徴ですが、流通やプロモーションの面では規模に制約がある場合もあります。"
-    },
-
-    // カテゴリ14追加
-    {
-      id: 62, category: 14, type: "fillin",
-      question: "Apple Musicが採用している立体音響技術「空間オーディオ」は、___テクノロジーをベースにしています。",
-      options: ["Dolby Atmos", "DTS:X", "Sony 360", "THX Spatial"],
-      answer: 0,
-      explanation: "Apple Musicの空間オーディオはDolby Atmos技術をベースにしており、対応する楽曲では音が頭の周囲全方向から聞こえるような立体的なリスニング体験を提供します。2021年6月から提供が開始されました。"
-    },
-
-    // カテゴリ13追加
-    {
-      id: 63, category: 13, type: "multiple",
-      question: "WIPOの正式名称は何ですか？",
-      options: [
-        "世界知的所有権機関",
-        "世界音楽著作権機構",
-        "世界インターネット保護機関",
-        "世界貿易機関"
-      ],
-      answer: 0,
-      explanation: "WIPO（World Intellectual Property Organization）は「世界知的所有権機関」で、国連の専門機関の一つです。知的財産権（著作権、特許、商標など）に関する国際的な保護と協力を促進しています。本部はスイスのジュネーブにあります。"
-    }
-  ]
-};
-
-// ========================================================
-// アプリケーション状態管理（メモリ内）
-// ========================================================
-const appState = {
-  selectedCategories: new Set(),
-  questionCount: 10,
-  currentQuestions: [],
-  currentIndex: 0,
-  score: 0,
-  answers: [], // { questionId, userAnswer, isCorrect }
-  categoryStats: {} // categoryId -> { correct, total }
-};
-
-// ========================================================
-// ユーティリティ関数
-// ========================================================
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function getCategoryById(id) {
-  return quizData.categories.find(c => c.id === id);
-}
-
-function getQuestionsForCategories(categoryIds) {
-  return quizData.questions.filter(q => categoryIds.has(q.category));
-}
-
-function getTypeLabel(type) {
-  const labels = { multiple: "4択", truefalse: "○×", fillin: "穴埋め", matching: "マッチング" };
-  return labels[type] || type;
-}
-
-// ========================================================
-// 画面切り替え
-// ========================================================
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-// ========================================================
-// ホーム画面の初期化
-// ========================================================
-function initHome() {
-  const grid = document.getElementById('category-grid');
-  grid.innerHTML = '';
-
-  quizData.categories.forEach(cat => {
-    const count = quizData.questions.filter(q => q.category === cat.id).length;
-    const stats = appState.categoryStats[cat.id];
-    const statsHtml = stats && stats.total > 0
-      ? `<div class="cat-stats">正答率: ${Math.round(stats.correct / stats.total * 100)}% (${stats.correct}/${stats.total})</div>`
-      : '';
-
-    const card = document.createElement('div');
-    card.className = 'category-card';
-    card.dataset.id = cat.id;
-    card.innerHTML = `
-      <div class="check-mark">✓</div>
-      <div class="cat-icon">${cat.icon}</div>
-      <div class="cat-name">${cat.name}</div>
-      <div class="cat-count">${count}問</div>
-      ${statsHtml}
-    `;
-    card.addEventListener('click', () => toggleCategory(cat.id, card));
-    grid.appendChild(card);
-  });
-
-  updateCountSelector();
-  updateStartButton();
-}
-
-function toggleCategory(id, card) {
-  if (appState.selectedCategories.has(id)) {
-    appState.selectedCategories.delete(id);
-    card.classList.remove('selected');
-  } else {
-    appState.selectedCategories.add(id);
-    card.classList.add('selected');
-  }
-  updateCountSelector();
-  updateStartButton();
-}
-
-function updateCountSelector() {
-  const total = getQuestionsForCategories(appState.selectedCategories).length;
-  const container = document.getElementById('count-selector');
-  const counts = [5, 10, 20].filter(n => n <= total);
-  if (total > 0) counts.push(total);
-  const uniqueCounts = [...new Set(counts)];
-
-  container.innerHTML = '';
-  uniqueCounts.forEach(n => {
-    const btn = document.createElement('button');
-    btn.className = 'count-btn' + (appState.questionCount === n ? ' selected' : '');
-    btn.textContent = n === total ? `全問 (${n})` : `${n}問`;
-    btn.addEventListener('click', () => {
-      appState.questionCount = n;
-      container.querySelectorAll('.count-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-    container.appendChild(btn);
-  });
-
-  if (!uniqueCounts.includes(appState.questionCount) && uniqueCounts.length > 0) {
-    appState.questionCount = uniqueCounts[0];
-    container.querySelector('.count-btn')?.classList.add('selected');
-  }
-}
-
-function updateStartButton() {
-  document.getElementById('btn-start').disabled = appState.selectedCategories.size === 0;
-}
-
-// ========================================================
-// クイズ開始
-// ========================================================
-function startQuiz(questions) {
-  const pool = questions || shuffle(getQuestionsForCategories(appState.selectedCategories));
-  appState.currentQuestions = pool.slice(0, appState.questionCount);
-  appState.currentIndex = 0;
-  appState.score = 0;
-  appState.answers = [];
-
-  showScreen('screen-quiz');
-  renderQuestion();
-}
-
-// ========================================================
-// 問題描画
-// ========================================================
-function renderQuestion() {
-  const q = appState.currentQuestions[appState.currentIndex];
-  const total = appState.currentQuestions.length;
-  const card = document.getElementById('question-card');
-
-  document.getElementById('progress-text').textContent = `${appState.currentIndex + 1} / ${total}`;
-  document.getElementById('score-text').textContent = `正解: ${appState.score}`;
-  document.getElementById('progress-fill').style.width = `${((appState.currentIndex) / total) * 100}%`;
-  document.getElementById('btn-next').style.display = 'none';
-
-  const cat = getCategoryById(q.category);
-
-  let optionsHtml = '';
-
-  if (q.type === 'multiple' || q.type === 'fillin') {
-    optionsHtml = `<div class="options-list">${q.options.map((o, i) =>
-      `<button class="option-btn" data-index="${i}">${o}</button>`
-    ).join('')}</div>`;
-  } else if (q.type === 'truefalse') {
-    optionsHtml = `<div class="options-list">
-      <button class="option-btn" data-value="true">○（正しい）</button>
-      <button class="option-btn" data-value="false">×（誤り）</button>
-    </div>`;
-  } else if (q.type === 'matching') {
-    optionsHtml = `<div class="matching-container">${q.pairs.map((p, i) => {
-      const shuffledOpts = shuffle(p.options.map((o, oi) => ({ text: o, origIndex: oi })));
-      return `<div class="matching-row">
-        <div class="matching-term">${p.term}</div>
-        <select class="matching-select" data-pair="${i}">
-          <option value="">選択してください</option>
-          ${shuffledOpts.map(o => `<option value="${o.origIndex}">${o.text}</option>`).join('')}
-        </select>
-      </div>`;
-    }).join('')}
-    <button class="btn btn-primary matching-submit-btn" id="btn-matching-submit">回答する</button>
-    </div>`;
-  }
-
-  card.innerHTML = `
-    <div class="question-meta">
-      <span class="badge badge-category">${cat.icon} ${cat.name}</span>
-      <span class="badge badge-type">${getTypeLabel(q.type)}</span>
-    </div>
-    <div class="question-text">${q.question}</div>
-    ${optionsHtml}
-  `;
-
-  // Attach events
-  if (q.type === 'multiple' || q.type === 'fillin') {
-    card.querySelectorAll('.option-btn').forEach(btn => {
-      btn.addEventListener('click', () => handleAnswer(q, parseInt(btn.dataset.index)));
-    });
-  } else if (q.type === 'truefalse') {
-    card.querySelectorAll('.option-btn').forEach(btn => {
-      btn.addEventListener('click', () => handleTrueFalse(q, btn.dataset.value === 'true'));
-    });
-  } else if (q.type === 'matching') {
-    document.getElementById('btn-matching-submit').addEventListener('click', () => handleMatching(q));
-  }
-}
-
-// ========================================================
-// 回答処理
-// ========================================================
-function handleAnswer(q, selectedIndex) {
-  const isCorrect = selectedIndex === q.answer;
-  const btns = document.querySelectorAll('.option-btn');
-  btns.forEach(b => {
-    b.disabled = true;
-    const idx = parseInt(b.dataset.index);
-    if (idx === q.answer) b.classList.add('correct');
-    if (idx === selectedIndex && !isCorrect) b.classList.add('incorrect');
-  });
-
-  recordAnswer(q, isCorrect, q.options[selectedIndex], q.options[q.answer]);
-  showExplanation(q);
-}
-
-function handleTrueFalse(q, selected) {
-  const isCorrect = selected === q.answer;
-  const btns = document.querySelectorAll('.option-btn');
-  btns.forEach(b => {
-    b.disabled = true;
-    const val = b.dataset.value === 'true';
-    if (val === q.answer) b.classList.add('correct');
-    if (val === selected && !isCorrect) b.classList.add('incorrect');
-  });
-
-  const userAns = selected ? '○（正しい）' : '×（誤り）';
-  const correctAns = q.answer ? '○（正しい）' : '×（誤り）';
-  recordAnswer(q, isCorrect, userAns, correctAns);
-  showExplanation(q);
-}
-
-function handleMatching(q) {
-  const selects = document.querySelectorAll('.matching-select');
-  let allCorrect = true;
-  let allSelected = true;
-
-  selects.forEach((sel, i) => {
-    if (sel.value === '') { allSelected = false; return; }
-    const isCorrect = parseInt(sel.value) === q.pairs[i].answer;
-    sel.disabled = true;
-    sel.style.borderColor = isCorrect ? 'var(--correct)' : 'var(--incorrect)';
-    sel.style.background = isCorrect ? 'var(--correct-bg)' : 'var(--incorrect-bg)';
-    if (!isCorrect) allCorrect = false;
-  });
-
-  if (!allSelected) return;
-
-  document.getElementById('btn-matching-submit').style.display = 'none';
-
-  const userAnswers = Array.from(selects).map((sel, i) => q.pairs[i].options[parseInt(sel.value)]).join(', ');
-  const correctAnswers = q.pairs.map(p => p.options[p.answer]).join(', ');
-  recordAnswer(q, allCorrect, userAnswers, correctAnswers);
-  showExplanation(q);
-}
-
-function recordAnswer(q, isCorrect, userAnswer, correctAnswer) {
-  if (isCorrect) appState.score++;
-  appState.answers.push({
-    questionId: q.id,
-    userAnswer,
-    correctAnswer,
-    isCorrect,
-    question: q.question,
-    explanation: q.explanation,
-    category: q.category
-  });
-
-  if (!appState.categoryStats[q.category]) {
-    appState.categoryStats[q.category] = { correct: 0, total: 0 };
-  }
-  appState.categoryStats[q.category].total++;
-  if (isCorrect) appState.categoryStats[q.category].correct++;
-}
-
-function showExplanation(q) {
-  const card = document.getElementById('question-card');
-  const expDiv = document.createElement('div');
-  expDiv.className = 'explanation';
-  expDiv.innerHTML = `<div class="explanation-label">解説</div><div>${q.explanation}</div>`;
-  card.appendChild(expDiv);
-
-  const btnNext = document.getElementById('btn-next');
-  if (appState.currentIndex < appState.currentQuestions.length - 1) {
-    btnNext.textContent = '次の問題へ';
-  } else {
-    btnNext.textContent = '結果を見る';
-  }
-  btnNext.style.display = 'inline-flex';
-}
-
-// ========================================================
-// 次の問題 / 結果画面
-// ========================================================
-document.getElementById('btn-next').addEventListener('click', () => {
-  appState.currentIndex++;
-  if (appState.currentIndex < appState.currentQuestions.length) {
-    renderQuestion();
-  } else {
-    showResult();
-  }
-});
-
-function showResult() {
-  showScreen('screen-result');
-  const total = appState.currentQuestions.length;
-  const score = appState.score;
-  const pct = Math.round(score / total * 100);
-
-  document.getElementById('final-score').textContent = pct;
-  document.getElementById('progress-fill').style.width = '100%';
-
-  let msg, sub;
-  if (pct === 100) { msg = '完璧です！'; sub = '全問正解、素晴らしい！'; }
-  else if (pct >= 80) { msg = '素晴らしい！'; sub = `${total}問中${score}問正解！`; }
-  else if (pct >= 60) { msg = 'なかなか良いですね！'; sub = `${total}問中${score}問正解！`; }
-  else if (pct >= 40) { msg = 'もう少し頑張りましょう！'; sub = `${total}問中${score}問正解`; }
-  else { msg = '復習しましょう！'; sub = `${total}問中${score}問正解`; }
-
-  document.getElementById('result-message').textContent = msg;
-  document.getElementById('result-sub').textContent = sub;
-
-  // Category stats
-  const statsGrid = document.getElementById('cat-stats-grid');
-  statsGrid.innerHTML = '';
-  const relevantCats = [...new Set(appState.currentQuestions.map(q => q.category))];
-  relevantCats.forEach(catId => {
-    const cat = getCategoryById(catId);
-    const stats = appState.categoryStats[catId];
-    if (!stats) return;
-    const rate = Math.round(stats.correct / stats.total * 100);
-    const item = document.createElement('div');
-    item.className = 'cat-stat-item';
-    item.innerHTML = `
-      <div class="cat-stat-name">${cat.icon} ${cat.name}</div>
-      <div class="cat-stat-bar"><div class="cat-stat-fill" style="width:${rate}%"></div></div>
-      <div class="cat-stat-text">${rate}% (${stats.correct}/${stats.total})</div>
-    `;
-    statsGrid.appendChild(item);
-  });
-
-  // Review wrong answers
-  const wrongAnswers = appState.answers.filter(a => !a.isCorrect);
-  const reviewSection = document.getElementById('review-section');
-  const reviewList = document.getElementById('review-list');
-  const retryBtn = document.getElementById('btn-retry-wrong');
-
-  if (wrongAnswers.length === 0) {
-    reviewSection.style.display = 'none';
-    retryBtn.style.display = 'none';
-  } else {
-    reviewSection.style.display = 'block';
-    retryBtn.style.display = 'inline-flex';
-    reviewList.innerHTML = '';
-
-    wrongAnswers.forEach(a => {
-      const cat = getCategoryById(a.category);
-      const item = document.createElement('div');
-      item.className = 'review-item';
-      item.innerHTML = `
-        <div class="q-label">${cat.icon} ${cat.name}</div>
-        <div class="q-text">${a.question}</div>
-        <div class="your-answer">あなたの回答: ${a.userAnswer}</div>
-        <div class="correct-answer">正解: ${a.correctAnswer}</div>
-        <div class="review-explanation">${a.explanation}</div>
-      `;
-      reviewList.appendChild(item);
-    });
-  }
-}
-
-// ========================================================
-// 間違えた問題を再挑戦
-// ========================================================
-document.getElementById('btn-retry-wrong').addEventListener('click', () => {
-  const wrongIds = appState.answers.filter(a => !a.isCorrect).map(a => a.questionId);
-  const wrongQs = quizData.questions.filter(q => wrongIds.includes(q.id));
-  appState.questionCount = wrongQs.length;
-  startQuiz(shuffle(wrongQs));
-});
-
-// ========================================================
-// トップに戻る
-// ========================================================
-document.getElementById('btn-home').addEventListener('click', () => {
-  showScreen('screen-home');
-  initHome();
-});
-
-// ========================================================
-// 全選択 / 解除
-// ========================================================
-document.getElementById('btn-select-all').addEventListener('click', () => {
-  const allSelected = appState.selectedCategories.size === quizData.categories.length;
-  const cards = document.querySelectorAll('.category-card');
-  if (allSelected) {
-    appState.selectedCategories.clear();
-    cards.forEach(c => c.classList.remove('selected'));
-  } else {
-    quizData.categories.forEach(cat => appState.selectedCategories.add(cat.id));
-    cards.forEach(c => c.classList.add('selected'));
-  }
-  updateCountSelector();
-  updateStartButton();
-});
-
-// ========================================================
-// クイズ開始ボタン
-// ========================================================
-document.getElementById('btn-start').addEventListener('click', () => startQuiz());
-
-// ========================================================
-// 初期化
-// ========================================================
-initHome();
-</script>
+
+    <script>
+        // State Management
+        const state = {
+            questions: [],
+            categories: [],
+            selectedCategories: [],
+            questionCount: null,
+            currentQuiz: [],
+            currentQuestion: 0,
+            answers: [],
+            categoryAccuracy: {},
+            matchingPairs: {},
+            selectedTerm: null,
+            answeredQuestions: []
+        };
+
+        // Initialize App
+        async function initApp() {
+            try {
+                const response = await fetch('questions.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                state.questions = data.questions || [];
+                state.categories = data.categories || [];
+
+                state.categories.forEach(category => {
+                    state.categoryAccuracy[category.id] = { correct: 0, total: 0 };
+                });
+
+                showScreen('startScreen');
+            } catch (error) {
+                console.error('Failed to load questions:', error);
+                showErrorScreen(`クイズのデータ読み込みに失敗しました: ${error.message}`);
+            }
+        }
+
+        function showErrorScreen(message) {
+            showScreen('loadingScreen');
+            document.getElementById('loadingScreen').innerHTML = `
+                <div class="error-message">${message}</div>
+            `;
+        }
+
+        // Screen Navigation
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function showStartScreen() {
+            state.selectedCategories = [];
+            state.questionCount = null;
+            showScreen('startScreen');
+        }
+
+        function showCategoryScreen() {
+            renderCategories();
+            showScreen('categoryScreen');
+        }
+
+        function showCountScreen() {
+            if (state.selectedCategories.length === 0) {
+                alert('少なくとも1つのカテゴリを選択してください');
+                return;
+            }
+            document.querySelectorAll('.count-btn').forEach(btn => btn.classList.remove('selected'));
+            showScreen('countScreen');
+        }
+
+        // Category Management
+        function renderCategories() {
+            const container = document.getElementById('categoryGrid');
+            container.innerHTML = '';
+
+            state.categories.forEach(category => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                if (state.selectedCategories.includes(category.id)) {
+                    card.classList.add('selected');
+                }
+                card.innerHTML = `
+                    <h3>${category.name}</h3>
+                    <div class="count">${category.questions.length}問</div>
+                `;
+                card.onclick = () => toggleCategory(category.id);
+                container.appendChild(card);
+            });
+        }
+
+        function toggleCategory(categoryId) {
+            const index = state.selectedCategories.indexOf(categoryId);
+            if (index > -1) {
+                state.selectedCategories.splice(index, 1);
+            } else {
+                state.selectedCategories.push(categoryId);
+            }
+            renderCategories();
+        }
+
+        function selectAllCategories() {
+            state.selectedCategories = state.categories.map(c => c.id);
+            renderCategories();
+        }
+
+        function deselectAllCategories() {
+            state.selectedCategories = [];
+            renderCategories();
+        }
+
+        // Question Count Selection
+        function selectQuestionCount(count) {
+            document.querySelectorAll('.count-btn').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            state.questionCount = count;
+        }
+
+        // Quiz Preparation
+        function startQuiz() {
+            if (state.questionCount === null && document.querySelector('.count-btn.selected') === null) {
+                alert('問題数を選択してください');
+                return;
+            }
+
+            // Prepare questions
+            let quizQuestions = [];
+            state.selectedCategories.forEach(catId => {
+                const category = state.categories.find(c => c.id === catId);
+                if (category) {
+                    quizQuestions = quizQuestions.concat(category.questions.map(q => ({...q, categoryId: catId})));
+                }
+            });
+
+            // Shuffle and limit
+            quizQuestions = shuffleArray(quizQuestions);
+            if (state.questionCount !== null) {
+                quizQuestions = quizQuestions.slice(0, state.questionCount);
+            }
+
+            state.currentQuiz = quizQuestions;
+            state.currentQuestion = 0;
+            state.answers = [];
+            state.matchingPairs = {};
+            state.answeredQuestions = [];
+
+            showScreen('quizScreen');
+            displayQuestion();
+        }
+
+        // Question Display
+        function displayQuestion() {
+            const question = state.currentQuiz[state.currentQuestion];
+            const progress = ((state.currentQuestion) / state.currentQuiz.length) * 100;
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = state.currentQuestion + 1;
+            document.getElementById('totalQuestions').textContent = state.currentQuiz.length;
+            document.getElementById('questionText').innerHTML = formatQuestion(question);
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('feedback').classList.remove('show', 'correct', 'incorrect');
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            state.selectedTerm = null;
+
+            if (question.type === 'multiple_choice') {
+                const options = shuffleArray([...question.options]);
+                options.forEach((option, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = option;
+                    btn.onclick = () => selectAnswer(option);
+                    optionsContainer.appendChild(btn);
+                });
+            } else if (question.type === 'true_false') {
+                optionsContainer.className = 'true-false-options';
+                ['○', '×'].forEach(option => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn true-false';
+                    btn.textContent = option;
+                    btn.onclick = () => selectAnswer(option);
+                    optionsContainer.appendChild(btn);
+                });
+            } else if (question.type === 'fill_blank') {
+                const options = shuffleArray([...question.options]);
+                options.forEach(option => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = option;
+                    btn.onclick = () => selectAnswer(option);
+                    optionsContainer.appendChild(btn);
+                });
+            } else if (question.type === 'matching') {
+                displayMatching(question, optionsContainer);
+            }
+        }
+
+        function formatQuestion(question) {
+            if (question.type === 'fill_blank') {
+                return question.question.replace('[___]', '<span class="blank-placeholder">?</span>');
+            }
+            return question.question;
+        }
+
+        function displayMatching(question, container) {
+            const matchingDiv = document.createElement('div');
+            matchingDiv.className = 'matching-container';
+
+            const leftCol = document.createElement('div');
+            leftCol.className = 'matching-column';
+
+            const rightCol = document.createElement('div');
+            rightCol.className = 'matching-column';
+
+            const shuffledPairs = shuffleArray([...question.pairs]);
+
+            question.pairs.forEach((pair, index) => {
+                const term = document.createElement('div');
+                term.className = 'matching-term';
+                term.textContent = pair.term;
+                term.dataset.index = index;
+                term.onclick = () => selectMatchingTerm(index);
+                leftCol.appendChild(term);
+            });
+
+            shuffledPairs.forEach((pair, index) => {
+                const def = document.createElement('div');
+                def.className = 'matching-definition';
+                const originalIndex = question.pairs.findIndex(p => p.definition === pair.definition && p.term === pair.term);
+                def.textContent = pair.definition;
+                def.dataset.index = originalIndex;
+                def.onclick = () => selectMatchingDefinition(originalIndex);
+                rightCol.appendChild(def);
+            });
+
+            matchingDiv.appendChild(leftCol);
+            matchingDiv.appendChild(rightCol);
+            container.appendChild(matchingDiv);
+
+            const btnDiv = document.createElement('div');
+            btnDiv.style.gridColumn = '1 / -1';
+            btnDiv.style.marginTop = '20px';
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn btn-primary';
+            submitBtn.textContent = '判定する';
+            submitBtn.onclick = () => submitMatchingAnswer();
+            btnDiv.appendChild(submitBtn);
+            container.appendChild(btnDiv);
+
+            updateMatchingDisplay();
+        }
+
+        function selectMatchingTerm(index) {
+            if (state.matchingPairs[index] !== undefined) return;
+
+            const terms = document.querySelectorAll('.matching-term');
+            terms.forEach(t => t.classList.remove('selected'));
+
+            if (state.selectedTerm === index) {
+                state.selectedTerm = null;
+            } else {
+                state.selectedTerm = index;
+                terms[index].classList.add('selected');
+            }
+        }
+
+        function selectMatchingDefinition(index) {
+            if (state.matchingPairs[index] !== undefined) return;
+            if (state.selectedTerm === null) return;
+
+            state.matchingPairs[state.selectedTerm] = index;
+            state.selectedTerm = null;
+
+            const terms = document.querySelectorAll('.matching-term');
+            terms.forEach(t => t.classList.remove('selected'));
+
+            updateMatchingDisplay();
+        }
+
+        function updateMatchingDisplay() {
+            document.querySelectorAll('.matching-term, .matching-definition').forEach(el => {
+                el.classList.remove('paired');
+            });
+
+            const terms = document.querySelectorAll('.matching-term');
+            const defs = document.querySelectorAll('.matching-definition');
+
+            Object.keys(state.matchingPairs).forEach(termIdx => {
+                const defIdx = state.matchingPairs[termIdx];
+                if (terms[termIdx]) terms[termIdx].classList.add('paired');
+                defs.forEach(def => {
+                    if (def.dataset.index == defIdx) def.classList.add('paired');
+                });
+            });
+        }
+
+        function submitMatchingAnswer() {
+            const question = state.currentQuiz[state.currentQuestion];
+            const allMatched = question.pairs.length === Object.keys(state.matchingPairs).length;
+
+            if (!allMatched) {
+                alert('すべてのペアをマッチングしてください');
+                return;
+            }
+
+            const correct = question.pairs.every((pair, index) => {
+                return state.matchingPairs[index] === index;
+            });
+
+            selectAnswer(null, correct);
+        }
+
+        // Answer Selection
+        function selectAnswer(answer, isMatching = false) {
+            const question = state.currentQuiz[state.currentQuestion];
+            const isCorrect = isMatching ? isMatching : (
+                question.type === 'matching' ? false :
+                answer === question.correctAnswer
+            );
+
+            state.answers.push({
+                questionIndex: state.currentQuestion,
+                answer: answer,
+                isCorrect: isCorrect
+            });
+
+            state.answeredQuestions.push({
+                ...question,
+                userAnswer: answer,
+                isCorrect: isCorrect
+            });
+
+            state.categoryAccuracy[question.categoryId].total++;
+            if (isCorrect) {
+                state.categoryAccuracy[question.categoryId].correct++;
+            }
+
+            showFeedback(isCorrect, question);
+        }
+
+        function showFeedback(isCorrect, question) {
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.className = 'feedback show ' + (isCorrect ? 'correct' : 'incorrect');
+
+            let content = `<h3>${isCorrect ? '✓ 正解！' : '✗ 不正解'}</h3>`;
+
+            if (!isCorrect) {
+                if (question.type === 'matching') {
+                    content += `<p class="explanation">正しいペアリング:</p>`;
+                    question.pairs.forEach(pair => {
+                        content += `<p>• ${pair.term} → ${pair.definition}</p>`;
+                    });
+                } else {
+                    content += `<p><strong>正答:</strong> ${question.correctAnswer}</p>`;
+                }
+            }
+
+            if (question.explanation) {
+                content += `<p class="explanation"><strong>解説:</strong> ${question.explanation}</p>`;
+            }
+
+            feedbackDiv.innerHTML = content;
+
+            // Disable option buttons
+            document.querySelectorAll('.option-btn, .matching-term, .matching-definition').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            setTimeout(() => {
+                nextQuestion();
+            }, 2500);
+        }
+
+        // Navigation
+        function nextQuestion() {
+            state.currentQuestion++;
+            if (state.currentQuestion < state.currentQuiz.length) {
+                displayQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        // Results Display
+        function showResults() {
+            const correct = state.answers.filter(a => a.isCorrect).length;
+            const total = state.answers.length;
+            const percentage = Math.round((correct / total) * 100);
+
+            document.getElementById('scoreDisplay').textContent = correct;
+            document.getElementById('scoreDetails').textContent = `${correct} / ${total}`;
+            document.getElementById('percentageDisplay').textContent = `${percentage}%`;
+
+            // Category results
+            const categoryResultsDiv = document.getElementById('categoryResults');
+            categoryResultsDiv.innerHTML = '';
+            state.selectedCategories.forEach(catId => {
+                const category = state.categories.find(c => c.id === catId);
+                const accuracy = state.categoryAccuracy[catId];
+                const acc = accuracy.total > 0 ? Math.round((accuracy.correct / accuracy.total) * 100) : 0;
+
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'category-result';
+                resultDiv.innerHTML = `
+                    <span class="name">${category.name}</span>
+                    <span class="accuracy">${accuracy.correct} / ${accuracy.total} (${acc}%)</span>
+                `;
+                categoryResultsDiv.appendChild(resultDiv);
+            });
+
+            // Incorrect questions
+            const incorrectQuestions = state.answeredQuestions.filter(q => !q.isCorrect);
+            if (incorrectQuestions.length > 0) {
+                document.getElementById('incorrectSection').style.display = 'block';
+                const incorrectDiv = document.getElementById('incorrectQuestions');
+                incorrectDiv.innerHTML = '';
+                incorrectQuestions.forEach(q => {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'incorrect-item';
+                    let content = `<div class="q-text">${q.question}</div>`;
+                    content += `<div class="answer-row"><span class="label">あなたの回答:</span><span class="your-answer">${q.userAnswer || 'マッチング失敗'}</span></div>`;
+                    content += `<div class="answer-row"><span class="label">正答:</span><span class="correct-answer">${q.correctAnswer}</span></div>`;
+                    itemDiv.innerHTML = content;
+                    incorrectDiv.appendChild(itemDiv);
+                });
+            } else {
+                document.getElementById('incorrectSection').style.display = 'none';
+            }
+
+            showScreen('resultsScreen');
+        }
+
+        // Utility Functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
